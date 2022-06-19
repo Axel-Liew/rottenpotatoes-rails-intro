@@ -7,8 +7,45 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
+
+    @all_ratings = Movie.all_ratings
+    @ratings_to_show_hash = @all_ratings
+
+    arr_of_ratings = params[:ratings]
+
+    if (!arr_of_ratings.nil?)
+      @ratings_to_show_hash = []
+      params[:ratings].each_key {|key|
+      @ratings_to_show_hash.append(key)}
+      session[:ratings] = @ratings_to_show_hash
+    end
+
+    @movies = Movie.with_ratings(@ratings_to_show_hash)
+
+    if (!params[:sort].blank?)
+      if (params[:sort] == "title")
+        @movies = Movie.with_ratings(@ratings_to_show_hash).order(params[:sort])
+        @title_header = 'hilite bg-warning'
+      elsif (params[:sort] == "release_date")
+        @movies = Movie.with_ratings(@ratings_to_show_hash).order(params[:sort])
+        @release_date_header = 'hilite bg-warning'
+      end
+      session[:sort] = params[:sort] 
+    end
+
+    if (!session[:sort].blank?)
+      @ratings_to_show_hash = session[:ratings] 
+      if (session[:sort] == "title")
+        @movies = Movie.with_ratings(@ratings_to_show_hash).order(session[:sort])
+        @title_header = 'hilite bg-warning'
+      elsif (session[:sort] == "release_date")
+        @movies = Movie.with_ratings(@ratings_to_show_hash).order(session[:sort])
+        @release_date_header = 'hilite bg-warning'
+      end
+    end
+
   end
+
 
   def new
     # default: render 'new' template
